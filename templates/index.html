@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}FinBot – Home{% endblock %}
+
+{% block content %}
+<section class="hero">
+    <div class="hero-badge">🤖 Powered by GPT-4o-mini</div>
+    <h1>Your Smart <span>Financial</span><br/>Assistant</h1>
+    <p>Get personalised financial strategies, investment advice, and wealth planning powered by advanced AI.</p>
+    <div class="hero-buttons">
+        <a href="/chat" class="btn btn-primary">Start Chat →</a>
+        <a href="/results" class="btn btn-secondary">View Results</a>
+    </div>
+</section>
+
+<section class="features">
+    <div class="feature-card">
+        <div class="feature-icon">💬</div>
+        <h3>Smart Dialogue</h3>
+        <p>FinBot collects your financial details through a natural conversation and builds your profile step by step.</p>
+    </div>
+    <div class="feature-card">
+        <div class="feature-icon">📊</div>
+        <h3>Personalised Strategy</h3>
+        <p>Receive a tailored financial strategy based on your income, savings, risk tolerance and goals.</p>
+    </div>
+    <div class="feature-card">
+        <div class="feature-icon">🧠</div>
+        <h3>AI Powered</h3>
+        <p>Built on GPT-4o-mini with Chain-of-Thought reasoning for accurate and structured financial advice.</p>
+    </div>
+    <div class="feature-card">
+        <div class="feature-icon">📈</div>
+        <h3>Visual Results</h3>
+        <p>Your financial strategy is presented with interactive charts and a clear 10-year roadmap.</p>
+    </div>
+    <div class="feature-card">
+        <div class="feature-icon">🔒</div>
+        <h3>Private & Secure</h3>
+        <p>Your data stays in your session only — nothing is stored permanently.</p>
+    </div>
+    <div class="feature-card">
+        <div class="feature-icon">⚡</div>
+        <h3>Instant Advice</h3>
+        <p>Get real-time responses and financial recommendations in seconds using the latest LLM technology.</p>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,12 @@
+flask
+python-dotenv
+langchain
+langchain-openai
+langchain-community
+langchain-core
+openai
+pandas
+numpy
+matplotlib
+plotly
+gunicorn
