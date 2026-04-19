@@ -1,12 +1,7 @@
 flask
 python-dotenv
-langchain
-langchain-openai
-langchain-community
+requests
+yfinance
 langchain-core
-openai
-pandas
-numpy
-matplotlib
-plotly
-gunicorn
+langchain-ollama
+langchain-openai

@@ -1,165 +1,196 @@
-/* ============================================================
-   COMP8420 A2 — FinBot Chat JavaScript
-   Student: Tarun Verma | ID: 49030000
-   ============================================================ */
+document.addEventListener("DOMContentLoaded", () => {
+    const chatMessages = document.getElementById("chatMessages");
+    const chatInput = document.getElementById("chatInput");
+    const sendBtn = document.getElementById("sendBtn");
+    const fullscreenToggle = document.getElementById("fullscreenToggle");
+    const chatShell = document.querySelector(".chat-shell");
 
-let messageCount = 0;
+    if (fullscreenToggle && chatShell) {
+        fullscreenToggle.addEventListener("click", () => {
+            chatShell.classList.toggle("is-fullscreen");
+            document.body.classList.toggle("chat-fullscreen");
 
-// ── Send Message ─────────────────────────────────────────────
-async function sendMessage() {
-    const input = document.getElementById("chatInput");
-    const message = input.value.trim();
-    if (!message) return;
-
-    // Add user message
-    appendMessage(message, "user");
-    input.value = "";
-    input.style.height = "auto";
-
-    // Disable input while waiting
-    toggleInput(false);
-
-    // Show typing indicator
-    const typingId = showTyping();
-
-    try {
-        const response = await fetch("/api/chat", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ message })
+            if (chatShell.classList.contains("is-fullscreen")) {
+                fullscreenToggle.textContent = "✕";
+                fullscreenToggle.setAttribute("title", "Exit fullscreen chat");
+            } else {
+                fullscreenToggle.textContent = "⛶";
+                fullscreenToggle.setAttribute("title", "Toggle fullscreen chat");
+            }
         });
+    }
+    
+    if (!chatMessages || !chatInput || !sendBtn) return;
 
-        const data = await response.json();
-        removeTyping(typingId);
+    function scrollChatToBottom(force = false) {
+        const distanceFromBottom =
+            chatMessages.scrollHeight - chatMessages.scrollTop - chatMessages.clientHeight;
 
-        if (data.error) {
-            appendMessage("Sorry, something went wrong. Please try again.", "bot");
+        if (force || distanceFromBottom < 120) {
+            requestAnimationFrame(() => {
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            });
+        }
+    }
+
+    function setProgress(stepNumber = 1) {
+        const step1 = document.getElementById("step1");
+        const step2 = document.getElementById("step2");
+        const step3 = document.getElementById("step3");
+        const step4 = document.getElementById("step4");
+
+        const steps = [step1, step2, step3, step4];
+
+        steps.forEach((step, index) => {
+            if (!step) return;
+
+            if (index < stepNumber) {
+                step.classList.add("active");
+            } else {
+                step.classList.remove("active");
+            }
+        });
+    }
+
+    function createMessageElement(content, sender = "bot", isHTML = false) {
+        const message = document.createElement("div");
+        message.className = `message ${sender}`;
+
+        const avatar = document.createElement("div");
+        avatar.className = `avatar ${sender === "bot" ? "bot-avatar" : "user-avatar"}`;
+        avatar.textContent = sender === "bot" ? "🤖" : "🧑";
+
+        const bubble = document.createElement("div");
+        bubble.className = "bubble";
+
+        if (isHTML) {
+            bubble.innerHTML = content;
         } else {
-            appendMessage(data.reply, "bot");
-            updateProgress(messageCount);
+            const paragraphs = String(content)
+                .split("\n")
+                .filter(line => line.trim() !== "");
 
-            // If strategy complete redirect to results
-            if (data.strategy_complete) {
-                updateStep(4);
-                setTimeout(() => {
-                    appendMessage("✅ Your financial strategy is ready! Redirecting to results...", "bot");
-                    setTimeout(() => window.location.href = "/results", 2000);
-                }, 500);
+            if (paragraphs.length === 0) {
+                bubble.innerHTML = "<p></p>";
+            } else {
+                bubble.innerHTML = paragraphs.map(line => `<p>${escapeHtml(line)}</p>`).join("");
             }
         }
-    } catch (err) {
-        removeTyping(typingId);
-        appendMessage("Connection error. Please check your internet and try again.", "bot");
+
+        if (sender === "user") {
+            message.appendChild(bubble);
+            message.appendChild(avatar);
+        } else {
+            message.appendChild(avatar);
+            message.appendChild(bubble);
+        }
+
+        return message;
     }
 
-    toggleInput(true);
-}
+    function appendMessage(content, sender = "bot", isHTML = false) {
+        const messageEl = createMessageElement(content, sender, isHTML);
+        chatMessages.appendChild(messageEl);
+        scrollChatToBottom(true);
+    }
 
-// ── Append Message ───────────────────────────────────────────
-function appendMessage(text, sender) {
-    const container = document.getElementById("chatMessages");
-    messageCount++;
+    async function sendMessage() {
+        const message = chatInput.value.trim();
+        if (!message) return;
 
-    const div = document.createElement("div");
-    div.className = `message ${sender}`;
-    div.innerHTML = `
-        <div class="message-avatar ${sender}-avatar">
-            ${sender === "bot" ? "🤖" : "👤"}
-        </div>
-        <div class="message-bubble">${formatMessage(text)}</div>
-    `;
+        appendMessage(message, "user", false);
 
-    container.appendChild(div);
-    container.scrollTop = container.scrollHeight;
-}
+        chatInput.value = "";
+        autoResizeTextarea();
+        chatInput.focus();
 
-// ── Format Message (bold, line breaks) ──────────────────────
-function formatMessage(text) {
-    return text
-        .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
-        .replace(/\*(.*?)\*/g, "<em>$1</em>")
-        .replace(/\n/g, "<br/>");
-}
+        try {
+            const response = await fetch("/api/chat", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    message: message,
+                    model: document.getElementById("modelSelect")?.value || "qwen"
+                })
+            });
 
-// ── Typing Indicator ─────────────────────────────────────────
-function showTyping() {
-    const container = document.getElementById("chatMessages");
-    const id = "typing-" + Date.now();
-    const div = document.createElement("div");
-    div.className = "message bot";
-    div.id = id;
-    div.innerHTML = `
-        <div class="message-avatar bot-avatar">🤖</div>
-        <div class="typing-indicator">
-            <span></span><span></span><span></span>
-        </div>
-    `;
-    container.appendChild(div);
-    container.scrollTop = container.scrollHeight;
-    return id;
-}
+            const data = await response.json();
+            appendMessage(data.reply, "bot", data.type === "strategy");
 
-function removeTyping(id) {
-    const el = document.getElementById(id);
-    if (el) el.remove();
-}
-
-// ── Toggle Input ─────────────────────────────────────────────
-function toggleInput(enabled) {
-    const input = document.getElementById("chatInput");
-    const btn = document.getElementById("sendBtn");
-    input.disabled = !enabled;
-    btn.disabled = !enabled;
-}
-
-// ── Quick Reply ──────────────────────────────────────────────
-function quickReply(text) {
-    const input = document.getElementById("chatInput");
-    input.value = text;
-    sendMessage();
-}
-
-// ── Update Progress Steps ────────────────────────────────────
-function updateProgress(count) {
-    if (count >= 1) updateStep(1);
-    if (count >= 3) updateStep(2);
-    if (count >= 5) updateStep(3);
-}
-
-function updateStep(stepNum) {
-    for (let i = 1; i <= 4; i++) {
-        const el = document.getElementById("step" + i);
-        if (!el) continue;
-        if (i < stepNum) {
-            el.className = "step done";
-        } else if (i === stepNum) {
-            el.className = "step active";
-        } else {
-            el.className = "step";
+            if (typeof data.progress === "number") {
+                setProgress(data.progress);
+            } else if (data.type === "strategy" || data.strategy_generated) {
+                setProgress(4);
+            }
+        } catch (error) {
+            appendMessage("Something went wrong while sending your message.", "bot", false);
+            console.error(error);
         }
     }
-}
 
-// ── Reset Chat ───────────────────────────────────────────────
-async function resetChat() {
-    await fetch("/reset");
-    window.location.reload();
-}
+    function autoResizeTextarea() {
+        chatInput.style.height = "auto";
+        chatInput.style.height = Math.min(chatInput.scrollHeight, 140) + "px";
+    }
 
-// ── Enter Key to Send ────────────────────────────────────────
-document.addEventListener("DOMContentLoaded", () => {
-    const input = document.getElementById("chatInput");
-    if (!input) return;
-    input.addEventListener("keydown", (e) => {
+    function escapeHtml(text) {
+        return String(text)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+
+    sendBtn.addEventListener("click", () => sendMessage());
+
+    chatInput.addEventListener("keydown", (e) => {
         if (e.key === "Enter" && !e.shiftKey) {
             e.preventDefault();
             sendMessage();
         }
     });
 
-    // Auto resize textarea
-    input.addEventListener("input", () => {
-        input.style.height = "auto";
-        input.style.height = input.scrollHeight + "px";
-    });
+    chatInput.addEventListener("input", autoResizeTextarea);
+
+    window.quickReply = function (text) {
+        chatInput.value = text;
+        autoResizeTextarea();
+        sendMessage();
+    };
+
+    window.resetChat = async function () {
+        try {
+            await fetch("/reset");
+
+            chatMessages.innerHTML = `
+                <div class="message bot">
+                    <div class="avatar bot-avatar">🤖</div>
+                    <div class="bubble">
+                        <p><strong>Hi! I’m FinBot.</strong></p>
+                        <p>I can handle two flows:</p>
+                        <ul>
+                            <li><strong>Market mode:</strong> “gold news”, “gold price”, “is it a good time to invest in gold?”</li>
+                            <li><strong>Strategy mode:</strong> “build me a personalised investment strategy”</li>
+                        </ul>
+                    </div>
+                </div>
+            `;
+
+            setProgress(1);
+
+            chatInput.value = "";
+            autoResizeTextarea();
+            scrollChatToBottom(true);
+        } catch (error) {
+            console.error(error);
+        }
+    };
+
+    autoResizeTextarea();
+    setProgress(1);
+    scrollChatToBottom(true);
 });
+

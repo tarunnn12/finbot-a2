@@ -1,47 +1,117 @@
 {% extends "base.html" %}
-{% block title %}FinBot – Home{% endblock %}
+{% block title %}FinBot – Smart Financial Assistant{% endblock %}
 
 {% block content %}
-<section class="hero">
-    <div class="hero-badge">🤖 Powered by GPT-4o-mini</div>
-    <h1>Your Smart <span>Financial</span><br/>Assistant</h1>
-    <p>Get personalised financial strategies, investment advice, and wealth planning powered by advanced AI.</p>
-    <div class="hero-buttons">
-        <a href="/chat" class="btn btn-primary">Start Chat →</a>
-        <a href="/results" class="btn btn-secondary">View Results</a>
-    </div>
-</section>
+<div class="page-shell">
+    <section class="hero-panel">
+        <div class="hero-copy">
+            <span class="hero-badge">Powered by GPT-4o-mini / Qwen</span>
+            <h1>Your smart <span>financial</span> assistant</h1>
+            <p>
+                Get cleaner market answers, stronger personalised strategy output, and a chat layout that actually fits the page.
+            </p>
+            <div class="hero-actions">
+                <a href="#workspace" class="btn btn-primary">Open workspace</a>
+                <button class="btn btn-secondary" type="button" onclick="quickReply('gold news')">Try gold news</button>
+            </div>
+            <div class="hero-feature-grid">
+                <article class="mini-card">
+                    <strong>Live market mode</strong>
+                    <p>Price, news, and “good time to invest?” answers without forcing profile questions.</p>
+                </article>
+                <article class="mini-card">
+                    <strong>Strategy mode</strong>
+                    <p>Asks for missing details only when you actually request a personalised plan.</p>
+                </article>
+                <article class="mini-card">
+                    <strong>Cleaner results</strong>
+                    <p>Answer cards are stacked, wider, and easier to read on desktop and mobile.</p>
+                </article>
+            </div>
+        </div>
+    </section>
 
-<section class="features">
-    <div class="feature-card">
-        <div class="feature-icon">💬</div>
-        <h3>Smart Dialogue</h3>
-        <p>FinBot collects your financial details through a natural conversation and builds your profile step by step.</p>
-    </div>
-    <div class="feature-card">
-        <div class="feature-icon">📊</div>
-        <h3>Personalised Strategy</h3>
-        <p>Receive a tailored financial strategy based on your income, savings, risk tolerance and goals.</p>
-    </div>
-    <div class="feature-card">
-        <div class="feature-icon">🧠</div>
-        <h3>AI Powered</h3>
-        <p>Built on GPT-4o-mini with Chain-of-Thought reasoning for accurate and structured financial advice.</p>
-    </div>
-    <div class="feature-card">
-        <div class="feature-icon">📈</div>
-        <h3>Visual Results</h3>
-        <p>Your financial strategy is presented with interactive charts and a clear 10-year roadmap.</p>
-    </div>
-    <div class="feature-card">
-        <div class="feature-icon">🔒</div>
-        <h3>Private & Secure</h3>
-        <p>Your data stays in your session only — nothing is stored permanently.</p>
-    </div>
-    <div class="feature-card">
-        <div class="feature-icon">⚡</div>
-        <h3>Instant Advice</h3>
-        <p>Get real-time responses and financial recommendations in seconds using the latest LLM technology.</p>
-    </div>
-</section>
+    <section id="workspace" class="workspace-grid workspace-grid--fixed">
+        <aside class="workspace-side">
+            <div class="side-card">
+                <div class="side-card__eyebrow">Assistant status</div>
+                <h3>What FinBot can do</h3>
+                <ul class="side-list">
+                    <li>Live asset prices and market news</li>
+                    <li>General market-based investment outlooks</li>
+                    <li>Personalised plans after collecting key inputs</li>
+                </ul>
+            </div>
+
+            <div class="side-card">
+                <div class="side-card__eyebrow">Progress</div>
+                <div class="progress-steps">
+                    <div class="step active" id="step1"><span class="step-dot"></span>Task definition</div>
+                    <div class="step" id="step2"><span class="step-dot"></span>Personal details</div>
+                    <div class="step" id="step3"><span class="step-dot"></span>Financial preferences</div>
+                    <div class="step" id="step4"><span class="step-dot"></span>Strategy generated</div>
+                </div>
+            </div>
+
+            <div class="side-card">
+                <div class="side-card__eyebrow">Quick prompts</div>
+                <div class="quick-actions">
+                    <button type="button" class="chip" onclick="quickReply('gold price')">Gold price</button>
+                    <button type="button" class="chip" onclick="quickReply('gold news')">Gold news</button>
+                    <button type="button" class="chip" onclick="quickReply('is it a good time to invest in gold?')">Gold outlook</button>
+                    <button type="button" class="chip" onclick="quickReply('build me a strategy for saving for a house deposit')">House deposit plan</button>
+                    <button type="button" class="chip" onclick="quickReply('build me an investment strategy')">Build strategy</button>
+                </div>
+            </div>
+            
+            <div class="side-card">
+                <div class="side-card__eyebrow">Model</div>
+                <select id="modelSelect" style="width:100%; padding:10px 12px; border-radius:12px; border:1px solid rgba(255,255,255,0.1); background:#0c1527; color:#e7edf7; font-size:0.9rem; cursor:pointer; outline:none;">
+                    <option value="qwen">🖥️ Qwen 2.5:3b (Local)</option>
+                    <option value="openai">☁️ GPT-4o-mini (Cloud)</option>
+                </select>
+            </div>
+
+            <div class="side-card">
+                <div class="side-card__eyebrow">Session</div>
+                <button type="button" class="btn btn-danger btn-block" onclick="resetChat()">Reset chat</button>
+            </div>
+        </aside>
+
+        <section class="chat-shell">
+            <div class="chat-shell__header">
+                <div>
+                    <h2>FinBot Assistant</h2>
+                    <p>Ask for market info or a full personalised strategy.</p>
+                </div>
+
+                <div class="chat-header-actions">
+                    <button type="button" id="fullscreenToggle" class="fullscreen-btn" title="Toggle fullscreen chat">
+                        ⛶
+                    </button>
+                    <div class="status-pill"><span></span>Online</div>
+                </div>
+            </div>
+
+            <div class="chat-feed" id="chatMessages">
+                <div class="message bot">
+                    <div class="avatar bot-avatar">🤖</div>
+                    <div class="bubble">
+                        <p><strong>Hi! I’m FinBot.</strong></p>
+                        <p>I can handle two flows:</p>
+                        <ul>
+                            <li><strong>Market mode:</strong> “gold news”, “gold price”, “is it a good time to invest in gold?”</li>
+                            <li><strong>Strategy mode:</strong> “build me a personalised investment strategy”</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="chat-input-bar">
+                <textarea id="chatInput" class="chat-input" rows="1" placeholder="Type your message and press Enter…"></textarea>
+                <button id="sendBtn" class="send-btn" type="button">➤</button>
+            </div>
+        </section>
+    </section>
+</div>
 {% endblock %}

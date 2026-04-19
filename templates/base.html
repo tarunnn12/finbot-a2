@@ -1,53 +1,30 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>{% block title %}FinBot – Personal Financial Assistant{% endblock %}</title>
-
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
-
-    <!-- Plotly for charts -->
-    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}"/>
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}FinBot{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     {% block extra_head %}{% endblock %}
 </head>
 <body>
-
-    <!-- ── Navbar ── -->
-    <nav class="navbar">
-        <div class="nav-container">
-            <a href="/" class="nav-logo">
-                💰 FinBot
-            </a>
-            <div class="nav-links">
-                <a href="/" class="nav-link">Home</a>
-                <a href="/chat" class="nav-link">Chat</a>
-                <a href="/results" class="nav-link">Results</a>
-            </div>
+    <header class="site-header">
+        <div class="site-shell nav-bar">
+            <a href="/" class="brand">💰 FinBot</a>
+            <nav>
+                <a href="#workspace">Workspace</a>
+            </nav>
         </div>
-    </nav>
+    </header>
 
-    <!-- ── Main Content ── -->
-    <main class="main-content">
+    <main class="site-shell page-wrap">
         {% block content %}{% endblock %}
     </main>
 
-    <!-- ── Footer ── -->
-    <footer class="footer">
-        <div class="footer-container">
-            <p>FinBot — COMP8420 Assignment 2 &nbsp;|&nbsp; Tarun Verma &nbsp;|&nbsp; ID: 49030000</p>
-            <p>Macquarie University &nbsp;|&nbsp; S1 2026</p>
-        </div>
-    </footer>
-
-    <!-- Custom JS -->
     <script src="{{ url_for('static', filename='js/chat.js') }}"></script>
     {% block extra_scripts %}{% endblock %}
-
 </body>
 </html>
