@@ -647,7 +647,9 @@ def chat():
             if parsed_value is None:
                 extracted = extract_user_data(message, profile, model_choice)
                 if isinstance(extracted, dict):
-                    parsed_value = extracted.get(pending_field)
+                    candidate = extracted.get(pending_field)
+                    if candidate is not None:
+                        parsed_value = parse_field_input(str(candidate), pending_field)
 
             if parsed_value is None:
                 return jsonify({
@@ -687,8 +689,32 @@ def chat():
 
     if is_strategy_request(message):
         extracted = extract_user_data(message, profile, model_choice)
-        if extracted:
-            profile.update({k: v for k, v in extracted.items() if v not in [None, ""]})
+        extracted = extracted or {}
+
+        # Validate every extracted field before saving it
+        for key, value in extracted.items():
+            if key not in REQUIRED_FIELDS or value in [None, ""]:
+                continue
+
+            #  DO NOT auto-fill risk & goal from LLM
+            if key in ["risk", "goal"]:
+                continue
+
+            parsed = parse_field_input(str(value), key)
+            if parsed is not None:
+                profile[key] = parsed
+
+            parsed = parse_field_input(str(value), key)
+            if parsed is not None:
+                profile[key] = parsed
+
+        # Force risk to be asked unless explicitly and validly provided
+        if "risk" not in extracted or parse_field_input(str(extracted.get("risk", "")), "risk") is None:
+            profile.pop("risk", None)
+
+        # Force goal to be asked unless explicitly provided
+        if "goal" not in extracted or not str(extracted.get("goal", "")).strip():
+            profile.pop("goal", None)
 
         missing = get_missing_fields(profile)
         if missing:
@@ -715,7 +741,7 @@ def chat():
             "type": "strategy",
             "progress": 4,
             "strategy_generated": True
-        })    
+        })   
 
     if should_answer_market_view(message):
         return jsonify({"reply": answer_market_question(message, model_choice)})
